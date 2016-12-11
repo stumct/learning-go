@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+{{template "_head.html" .Title}}
+
+<body>
+    {{template "_header.html" .Active}}
+    <h1>Categories Page</h1>
+    <ul>
+        {{range .Categories}}
+        <li>
+            <a href="/categories/{{.Id}}">
+                <div>{{.Title}}</div>
+                <div>{{.Description}}</div>
+                <img src="/img/{{.ImageUrl}}" />
+            </a>
+        </li>
+        {{end}}
+    </ul>
+    {{template "_footer.html"}}
+</body>
+
+</html>
