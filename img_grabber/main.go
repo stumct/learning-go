@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 )
 
 const UserAgent = "Golang Reddit Reader"
@@ -33,13 +36,25 @@ func main() {
 	}
 	//fmt.Println(string(body))
 
-	var document Response
-	err = json.Unmarshal(body, &document)
+	var response Response
+	err = json.Unmarshal(body, &response)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(document)
+	for i := 1; i < len(response.Data.Children); i++ {
+		currentItem := response.Data.Children[i].Data
+		isImgurImg := strings.Contains(currentItem.URL, "imgur.com")
+		isJpg := strings.Contains(currentItem.URL, ".jpg")
+		if isImgurImg && isJpg {
+			fmt.Println(currentItem.URL)
+			downloadFile("C:/Dev/_images/img.jpg", currentItem.URL)
+			idx := strings.Index(currentItem.URL, "imgur.com/")
+			fmt.Println(idx)
+
+		}
+
+	}
 
 	defer resp.Body.Close()
 
@@ -57,4 +72,29 @@ type Item struct {
 	Title string
 	URL   string
 	Score int64
+}
+
+func downloadFile(filepath string, url string) (err error) {
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
