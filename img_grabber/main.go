@@ -1,77 +1,35 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 )
 
 const UserAgent = "Golang Reddit Reader"
 
 func main() {
-	// Create a request and add the proper headers.
-	req, err := http.NewRequest("GET", "https://api.reddit.com/r/aww", nil)
-	if err != nil {
-		//return nil, err
+	/*response := GetSubreddit("https://api.reddit.com/r/pics?limit=100")
+	posts := response.Data.Children
+
+	var wg sync.WaitGroup
+	wg.Add(len(posts))
+	for i := 1; i < len(posts); i++ {
+		go func(id int) {
+			post := posts[id].Data
+			if post.hasImgurURL() && post.hasExtension(".jpg") {
+				filename := post.URL[strings.Index(post.URL, "imgur.com/")+len("imgur.com/"):]
+				downloadFile("C:/Dev/_images/"+filename, post.URL)
+			}
+			wg.Done()
+		}(i)
 	}
-	req.Header.Set("User-Agent", UserAgent)
-	// Handle the request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		//return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		//return nil, errors.New(resp.Status)
-	}
+	wg.Wait()*/
 
-	body, err := ioutil.ReadAll(resp.Body)
+	response := GetImgurAPI("https://api.imgur.com/3/gallery/r/aww/", "abd05f05b578afe")
+	fmt.Println(response)
 
-	if err != nil {
-		fmt.Println("error reading body")
-	}
-	//fmt.Println(string(body))
-
-	var response Response
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		panic(err)
-	}
-
-	for i := 1; i < len(response.Data.Children); i++ {
-		currentItem := response.Data.Children[i].Data
-		isImgurImg := strings.Contains(currentItem.URL, "imgur.com")
-		isJpg := strings.Contains(currentItem.URL, ".jpg")
-		if isImgurImg && isJpg {
-			fmt.Println(currentItem.URL)
-			downloadFile("C:/Dev/_images/img.jpg", currentItem.URL)
-			idx := strings.Index(currentItem.URL, "imgur.com/")
-			fmt.Println(idx)
-
-		}
-
-	}
-
-	defer resp.Body.Close()
-
-}
-
-type Response struct {
-	Data struct {
-		Children []struct {
-			Data Item
-		}
-	}
-}
-
-type Item struct {
-	Title string
-	URL   string
-	Score int64
 }
 
 func downloadFile(filepath string, url string) (err error) {
